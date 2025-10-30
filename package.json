@@ -1,0 +1,134 @@
+{
+  "name": "mailcade",
+  "version": "2.0.0",
+  "description": "Developer Mail Sandbox - Email testing made easy",
+  "main": "dist-electron/main.js",
+  "author": {
+    "name": "olakunlevpn",
+    "email": "hello@maylancer.org"
+  },
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/olakunlevpn/MailCade.git"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build && electron-builder",
+    "build:publish": "vue-tsc --noEmit && vite build && electron-builder --publish always",
+    "preview": "vite preview",
+    "electron:dev": "vite",
+    "electron:build": "vite build && electron-builder",
+    "electron:publish": "vite build && electron-builder --publish always",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+    "format": "prettier --write src/",
+    "download-mailpit": "node scripts/download-mailpit.js",
+    "kill-mailpit": "bash scripts/kill-mailpit.sh",
+    "postinstall": "node scripts/download-mailpit.js",
+    "prepare": "node scripts/download-mailpit.js"
+  },
+  "dependencies": {
+    "@headlessui/vue": "^1.7.16",
+    "@heroicons/vue": "^2.0.18",
+    "axios": "^1.6.2",
+    "date-fns": "^3.0.1",
+    "dompurify": "^3.0.7",
+    "electron-store": "^8.1.0",
+    "electron-updater": "^6.6.2",
+    "pinia": "^2.1.7",
+    "vue": "^3.3.10",
+    "vue-router": "^4.2.5"
+  },
+  "devDependencies": {
+    "@types/dompurify": "^3.0.5",
+    "@types/node": "^20.10.5",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "@vitejs/plugin-vue": "^4.5.2",
+    "@vue/eslint-config-prettier": "^9.0.0",
+    "@vue/eslint-config-typescript": "^12.0.0",
+    "adm-zip": "^0.5.16",
+    "autoprefixer": "^10.4.16",
+    "concurrently": "^8.2.2",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "eslint": "^8.56.0",
+    "eslint-plugin-vue": "^9.19.2",
+    "postcss": "^8.4.32",
+    "prettier": "^3.1.1",
+    "tailwindcss": "^3.3.6",
+    "tar": "^7.5.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8",
+    "vite-plugin-electron": "^0.28.2",
+    "vite-plugin-electron-renderer": "^0.14.5",
+    "vue-tsc": "^2.0.0",
+    "wait-on": "^7.2.0"
+  },
+  "productName": "MailCade",
+  "build": {
+    "appId": "com.mailcade.app",
+    "productName": "MailCade",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "node_modules/**/*",
+      "package.json",
+      "!**/*.md",
+      "!docs/**/*",
+      "!rules/**/*",
+      "!*.md"
+    ],
+    "icon": "build/icons/icon.png",
+    "extraResources": [
+      {
+        "from": "electron/binaries",
+        "to": "binaries",
+        "filter": [
+          "**/*",
+          "!README.md"
+        ]
+      }
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "olakunlevpn",
+        "repo": "MailCade",
+        "private": false,
+        "releaseType": "release"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
+      "category": "Development"
+    }
+  }
+}
