@@ -4,7 +4,7 @@
 
 MailCade catches all emails your app tries to send during development. No more spamming real inboxes or setting up external email services.
 
-![MailCade](/docs/images/cover.png)
+![MailCade](/cover.png)
 
 ## Download
 
