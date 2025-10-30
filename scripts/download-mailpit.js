@@ -51,7 +51,14 @@ const BINARIES = [
  */
 function fetchJSON(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, { headers: { 'User-Agent': 'MailCade' } }, (res) => {
+    const headers = { 'User-Agent': 'MailCade' }
+    
+    // Use GitHub token if available (for CI/CD to avoid rate limits)
+    if (process.env.GITHUB_TOKEN) {
+      headers['Authorization'] = `token ${process.env.GITHUB_TOKEN}`
+    }
+    
+    https.get(url, { headers }, (res) => {
       let data = ''
       
       res.on('data', (chunk) => {
