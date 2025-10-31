@@ -46,13 +46,27 @@ class MailpitProcessService {
       binaryName = 'mailpit-linux'
     }
 
+    let binaryPath: string
     if (isDev) {
       // In development, look in the electron/binaries folder
-      return path.join(app.getAppPath(), 'electron', 'binaries', binaryName)
+      binaryPath = path.join(app.getAppPath(), 'electron', 'binaries', binaryName)
     } else {
       // In production, binaries are packaged in resources
-      return path.join(process.resourcesPath, 'binaries', binaryName)
+      binaryPath = path.join(process.resourcesPath, 'binaries', binaryName)
     }
+    
+    logger.debug(`Mailpit binary path: ${binaryPath}`)
+    
+    // Check if binary exists
+    const fs = require('fs')
+    if (!fs.existsSync(binaryPath)) {
+      const error = `Mailpit binary not found at: ${binaryPath}`
+      logger.error(error)
+      this.addLog(`[ERROR] ${error}`)
+      throw new Error(error)
+    }
+    
+    return binaryPath
   }
 
   /**
