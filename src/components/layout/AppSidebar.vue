@@ -43,15 +43,27 @@
               </svg>
             </button>
           </div>
-          <span
-            :class="serverStore.status.running ? 'text-green-500' : 'text-red-500'"
-            class="font-semibold"
-          >
-            {{ serverStore.status.running ? '● Running' : '● Stopped' }}
+          <span :class="statusColor" class="font-semibold flex items-center gap-1" :title="serverStore.status.state === 'error' ? serverStore.status.error : undefined">
+            <!-- Spinner for transitional states -->
+            <svg
+              v-if="isTransitioning"
+              class="w-3 h-3 animate-spin"
+              fill="none" viewBox="0 0 24 24"
+            >
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <!-- Solid dot for stable states -->
+            <span v-else>●</span>
+            {{ statusText }}
           </span>
         </div>
         <div class="text-secondary-500">
-          Port: {{ serverStore.status.smtpPort }}
+          <span>SMTP: {{ serverStore.actualSmtpPort }}</span>
+          <span
+            v-if="serverStore.status.resolvedSmtpPort"
+            class="text-yellow-500 ml-1"
+          >(configured: {{ serverStore.status.smtpPort }})</span>
         </div>
       </div>
     </div>
@@ -59,12 +71,37 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useServerStore } from '@/stores/server.store'
 
 const router = useRouter()
 const serverStore = useServerStore()
+
+const isTransitioning = computed(() =>
+  ['starting', 'stopping', 'restarting', 'reconnecting'].includes(serverStore.status.state)
+)
+
+const statusColor = computed(() => {
+  const state = serverStore.status.state
+  if (state === 'running') return 'text-green-500'
+  if (state === 'error' || state === 'stopped') return 'text-red-500'
+  return 'text-yellow-500'
+})
+
+const statusText = computed(() => {
+  const state = serverStore.status.state
+  switch (state) {
+    case 'stopped': return 'Stopped'
+    case 'starting': return 'Starting...'
+    case 'running': return 'Running'
+    case 'stopping': return 'Stopping...'
+    case 'restarting': return 'Restarting...'
+    case 'reconnecting': return 'Reconnecting...'
+    case 'error': return 'Error'
+    default: return 'Unknown'
+  }
+})
 
 const navigateToMailSettings = () => {
   router.push({ path: '/settings', query: { tab: 'mailpit' }, hash: '#mail-server' })
