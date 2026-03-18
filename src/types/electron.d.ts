@@ -3,11 +3,17 @@
  * This file declares the global window.electronAPI interface
  */
 
+export type MailpitState = 'stopped' | 'starting' | 'running' | 'stopping' | 'restarting' | 'reconnecting' | 'error'
+
 export interface MailpitStatus {
-  running: boolean
+  state: MailpitState
   port: number
   smtpPort: number
   pid?: number
+  error?: string
+  retryAttempt?: number
+  resolvedSmtpPort?: number
+  resolvedPort?: number
 }
 
 export interface UpdateStatus {
