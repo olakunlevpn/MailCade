@@ -158,32 +158,36 @@
                   <span
                     :class="[
                       'px-3 py-1 rounded-full text-sm font-medium',
-                      serverStore.status.running
+                      serverStore.isRunning
                         ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
                         : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
                     ]"
                   >
-                    {{ serverStore.status.running ? '● Running' : '● Stopped' }}
+                    {{ serverStore.isRunning ? '● Running' : '● Stopped' }}
                   </span>
                 </div>
                 <div class="flex gap-2">
                   <button
-                    v-if="!serverStore.status.running"
+                    v-if="serverStore.status.state === 'stopped' || serverStore.status.state === 'error'"
                     @click="serverStore.startMailpit()"
-                    class="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                    :disabled="serverStore.isTransitioning"
+                    class="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Start Server
+                    {{ serverStore.status.state === 'error' ? 'Retry' : 'Start Server' }}
                   </button>
                   <button
-                    v-else
+                    v-if="serverStore.status.state === 'running'"
                     @click="serverStore.stopMailpit()"
-                    class="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                    :disabled="serverStore.isTransitioning"
+                    class="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Stop Server
                   </button>
                   <button
+                    v-if="serverStore.status.state === 'running'"
                     @click="serverStore.restartMailpit()"
-                    class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    :disabled="serverStore.isTransitioning"
+                    class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Restart Server
                   </button>
@@ -324,7 +328,7 @@
                 <div class="p-4 bg-secondary-50 dark:bg-secondary-800 rounded-lg">
                   <p class="font-medium mb-2">SMTP Server</p>
                   <p class="text-sm text-secondary-600 dark:text-secondary-400">
-                    localhost:{{ serverStore.status.smtpPort }}
+                    localhost:{{ serverStore.actualSmtpPort }}
                   </p>
                 </div>
                 
@@ -587,13 +591,6 @@ const saveSettings = async () => {
     
     toast.success('Settings saved successfully')
     
-    // Check if Mailpit needs restart
-    if (
-      settings.value.mailpit.smtpPort !== serverStore.status.smtpPort ||
-      settings.value.mailpit.webUIPort !== serverStore.status.port
-    ) {
-      toast.info('Restart Mailpit for port changes to take effect')
-    }
   } catch (err) {
     console.error('Failed to save settings:', err)
     toast.error('Failed to save settings')
