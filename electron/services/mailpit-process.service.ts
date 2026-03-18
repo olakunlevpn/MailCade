@@ -12,6 +12,7 @@ import net from 'net'
 import { logger } from '../utils/logger'
 import { settingsService } from './settings.service'
 import { IPC_CHANNELS } from '../ipc/channels'
+import { mailpitAPIService } from './mailpit-api.service'
 
 export type MailpitState = 'stopped' | 'starting' | 'running' | 'stopping' | 'restarting' | 'reconnecting' | 'error'
 
@@ -203,7 +204,13 @@ class MailpitProcessService {
   private broadcastStatusChange(): void {
     const status = this.getStatus()
     BrowserWindow.getAllWindows().forEach((window) => {
-      window.webContents.send(IPC_CHANNELS.MAILPIT_STATUS_CHANGED, status)
+      try {
+        if (!window.isDestroyed()) {
+          window.webContents.send(IPC_CHANNELS.MAILPIT_STATUS_CHANGED, status)
+        }
+      } catch {
+        // Window may be closing, ignore
+      }
     })
   }
 
@@ -401,7 +408,6 @@ class MailpitProcessService {
     }
 
     // Update the API service with the actual running port
-    const { mailpitAPIService } = await import('./mailpit-api.service')
     mailpitAPIService.updateBaseURL(webUIPort)
 
     this.setState('running')
