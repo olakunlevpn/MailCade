@@ -42,7 +42,7 @@ export function useMailpitWebSocket() {
       return
     }
 
-    const port = serverStore.status.port
+    const port = serverStore.actualPort
     const url = `ws://localhost:${port}/api/events`
 
     try {
@@ -75,7 +75,7 @@ export function useMailpitWebSocket() {
         
         // Attempt to reconnect
         if (
-          serverStore.status.running &&
+          serverStore.status.state === 'running' &&
           reconnectAttempts < maxReconnectAttempts
         ) {
           reconnectAttempts++
@@ -234,10 +234,10 @@ export function useMailpitWebSocket() {
    * Watch server status and connect/disconnect accordingly
    */
   watch(
-    () => serverStore.status.running,
-    (running) => {
-      if (running) {
-        // Give Mailpit a moment to start up
+    () => serverStore.status.state,
+    (state) => {
+      if (state === 'running') {
+        // Give Mailpit a moment after state change
         setTimeout(connect, 1000)
       } else {
         disconnect()
