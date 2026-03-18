@@ -17,7 +17,7 @@
       <div v-else-if="emailStore.emails.length === 0" class="p-8 text-center text-secondary-500">
         <div class="text-4xl mb-4">📭</div>
         <p>No emails yet</p>
-        <p class="text-sm mt-2">Send a test email to localhost:{{ serverStore.status.smtpPort }}</p>
+        <p class="text-sm mt-2">Send a test email to localhost:{{ serverStore.actualSmtpPort }}</p>
       </div>
 
       <div v-else>
