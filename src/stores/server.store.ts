@@ -1,24 +1,59 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { ipcAPI } from '@/api/ipc'
+import { useToast } from '@/composables/useToast'
+import type { MailpitStatus, MailpitState } from '@/types/electron.d.ts'
 
-export interface MailpitStatus {
-  running: boolean
-  port: number
-  smtpPort: number
-  pid?: number
-}
+export type { MailpitStatus, MailpitState }
 
 export const useServerStore = defineStore('server', () => {
+  const toast = useToast()
   const status = ref<MailpitStatus>({
-    running: false,
+    state: 'stopped',
     port: 8025,
     smtpPort: 1025,
   })
   const logs = ref<string[]>([])
   const error = ref<string | null>(null)
+  const previousState = ref<MailpitState>('stopped')
 
-  // Listen for status changes
+  // Computed getters
+  const isRunning = computed(() => status.value.state === 'running')
+  const actualPort = computed(() => status.value.resolvedPort ?? status.value.port)
+  const actualSmtpPort = computed(() => status.value.resolvedSmtpPort ?? status.value.smtpPort)
+  const isTransitioning = computed(() =>
+    ['starting', 'stopping', 'restarting', 'reconnecting'].includes(status.value.state)
+  )
+
+  // Watch for state transitions to show toasts
+  watch(
+    () => status.value.state,
+    (newState, oldState) => {
+      previousState.value = oldState
+
+      // Crash recovery succeeded
+      if (oldState === 'reconnecting' && newState === 'running') {
+        toast.warning('Mail server restarted after unexpected shutdown')
+      }
+
+      // Error after starting or reconnecting
+      if (newState === 'error' && status.value.error) {
+        toast.error(status.value.error, 'Server Error')
+      }
+
+      // Port auto-resolved
+      if (newState === 'running') {
+        if (status.value.resolvedSmtpPort) {
+          toast.info(`SMTP port ${status.value.smtpPort} was in use, using ${status.value.resolvedSmtpPort} instead`)
+        }
+        if (status.value.resolvedPort) {
+          toast.info(`HTTP port ${status.value.port} was in use, using ${status.value.resolvedPort} instead`)
+        }
+      }
+    }
+  )
+
+  // Listen for status changes from main process
   let unsubscribe: (() => void) | null = null
 
   const setupStatusListener = () => {
@@ -94,13 +129,16 @@ export const useServerStore = defineStore('server', () => {
     }
   }
 
-  // Setup listener when store is initialized
   setupStatusListener()
 
   return {
     status,
     logs,
     error,
+    isRunning,
+    actualPort,
+    actualSmtpPort,
+    isTransitioning,
     startMailpit,
     stopMailpit,
     restartMailpit,
