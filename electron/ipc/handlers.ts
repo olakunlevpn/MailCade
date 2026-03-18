@@ -3,7 +3,7 @@
  * Handle all IPC communication between main and renderer processes
  */
 
-import { ipcMain, app, BrowserWindow, shell, Notification } from 'electron'
+import { ipcMain, app, shell, Notification } from 'electron'
 import { IPC_CHANNELS } from './channels'
 import { mailpitProcessService } from '../services/mailpit-process.service'
 import { mailpitAPIService } from '../services/mailpit-api.service'
@@ -22,10 +22,10 @@ export function registerIPCHandlers(): void {
   })
 
   // Mailpit process handlers
+  // Note: status broadcasts are handled by mailpitProcessService.broadcastStatusChange()
   ipcMain.handle(IPC_CHANNELS.MAILPIT_START, async () => {
     try {
       await mailpitProcessService.start()
-      notifyStatusChange()
     } catch (error) {
       logger.error('IPC: Failed to start Mailpit', error)
       throw error
@@ -35,7 +35,6 @@ export function registerIPCHandlers(): void {
   ipcMain.handle(IPC_CHANNELS.MAILPIT_STOP, async () => {
     try {
       await mailpitProcessService.stop()
-      notifyStatusChange()
     } catch (error) {
       logger.error('IPC: Failed to stop Mailpit', error)
       throw error
@@ -45,7 +44,6 @@ export function registerIPCHandlers(): void {
   ipcMain.handle(IPC_CHANNELS.MAILPIT_RESTART, async () => {
     try {
       await mailpitProcessService.restart()
-      notifyStatusChange()
     } catch (error) {
       logger.error('IPC: Failed to restart Mailpit', error)
       throw error
@@ -133,10 +131,9 @@ export function registerIPCHandlers(): void {
       // If Mailpit ports changed, restart the process
       if (key.includes('mailpit.')) {
         const status = mailpitProcessService.getStatus()
-        if (status.running) {
+        if (status.state === 'running') {
           logger.info('Mailpit settings changed, restarting process')
           await mailpitProcessService.restart()
-          notifyStatusChange()
         }
       }
     } catch (error) {
@@ -241,16 +238,6 @@ export function registerIPCHandlers(): void {
   })
 
   logger.info('IPC handlers registered successfully')
-}
-
-/**
- * Notify all windows about Mailpit status change
- */
-function notifyStatusChange(): void {
-  const status = mailpitProcessService.getStatus()
-  BrowserWindow.getAllWindows().forEach((window) => {
-    window.webContents.send(IPC_CHANNELS.MAILPIT_STATUS_CHANGED, status)
-  })
 }
 
 /**
