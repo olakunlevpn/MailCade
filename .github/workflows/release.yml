@@ -23,27 +23,15 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
-      # Snapcraft is optional - uncomment if you want to publish to Snap Store
-      # - name: Install Snapcraft (Linux only)
-      #   uses: samuelmeuli/action-snapcraft@v2
-      #   if: startsWith(matrix.os, 'ubuntu')
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Build/release Electron app
-        uses: samuelmeuli/action-electron-builder@v1.6.0
+      - name: Build Electron app
+        run: npx vue-tsc --noEmit && npx vite build
+
+      - name: Publish release
+        run: npx electron-builder --publish always
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          
-          # Automatically release when a tag is pushed
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
-          
-          # macOS code signing (optional, for later)
-          # mac_certs: ${{ secrets.MAC_CERTS }}
-          # mac_certs_password: ${{ secrets.MAC_CERTS_PASSWORD }}
-          
-          # Windows code signing (optional, for later)
-          # windows_certs: ${{ secrets.WINDOWS_CERTS }}
-          # windows_certs_password: ${{ secrets.WINDOWS_CERTS_PASSWORD }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
