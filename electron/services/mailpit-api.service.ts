@@ -58,9 +58,10 @@ class MailpitAPIService {
   /**
    * Update the base URL when settings change
    */
-  updateBaseURL(): void {
+  updateBaseURL(port?: number): void {
     const settings = settingsService.getAll()
-    const baseURL = `http://localhost:${settings.mailpit.webUIPort}`
+    const actualPort = port ?? settings.mailpit.webUIPort
+    const baseURL = `http://localhost:${actualPort}`
     this.client.defaults.baseURL = baseURL
     logger.debug(`Mailpit API base URL updated: ${baseURL}`)
   }
