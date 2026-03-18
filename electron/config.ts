@@ -4,12 +4,15 @@
  */
 
 import { readFileSync } from 'fs'
-import { join } from 'path'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
+
+const __configDirname = dirname(fileURLToPath(import.meta.url))
 
 // Read package.json to get app info
 let packageJson: any = {}
 try {
-  const packagePath = join(__dirname, '../package.json')
+  const packagePath = join(__configDirname, '../package.json')
   packageJson = JSON.parse(readFileSync(packagePath, 'utf-8'))
 } catch (err) {
   console.error('Failed to read package.json:', err)
