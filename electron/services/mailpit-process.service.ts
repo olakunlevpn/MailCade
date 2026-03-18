@@ -354,6 +354,7 @@ class MailpitProcessService {
       '--smtp', `0.0.0.0:${smtpPort}`,
       '--listen', `0.0.0.0:${webUIPort}`,
       '--max', String(maxMessages),
+      '--api-cors', '*',
       '--verbose',
     ])
 
