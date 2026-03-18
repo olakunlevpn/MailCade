@@ -22,17 +22,13 @@ Open the `.dmg` file and drag MailCade to your Applications folder. That's it.
 
 macOS might say "MailCade is damaged and can't be opened." The app isn't damaged - it just isn't code-signed yet.
 
-Fix it by running this command before opening the DMG:
+Fix it by running this command after dragging MailCade to your Applications folder:
 
 ```bash
-xattr -cr ~/Downloads/MailCade-*.dmg
+xattr -cr /Applications/MailCade.app
 ```
 
-Then open the DMG and install normally.
-
-**Alternative fix:**
-
-If you already installed it, go to System Settings → Privacy & Security, scroll down, and click "Open Anyway" next to the MailCade warning.
+Then open MailCade normally from your Applications folder.
 
 ### On Windows
 
