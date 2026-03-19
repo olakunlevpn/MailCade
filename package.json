@@ -1,6 +1,6 @@
 {
   "name": "mailcade",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Developer Mail Sandbox - Email testing made easy",
   "main": "dist-electron/main.js",
   "author": {
